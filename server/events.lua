@@ -243,6 +243,7 @@ end)
 
 RegisterNetEvent('qb-log:server:CreateLog', function(type, message)
     local src = source
+    if not QBConfig.WebHooks then return end -- dont send the log to discord if no webhooks found
     if not QBCore.Players[src] then return end
     local Player = QBCore.Players[src]
     LogsWebhooks = {
