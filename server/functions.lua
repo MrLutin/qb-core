@@ -23,8 +23,7 @@ end
 ---@return string?
 function QBCore.Functions.GetIdentifier(source, idtype)
     if GetConvarInt('sv_fxdkMode', 0) == 1 then return 'license:fxdk' end
-    if idtype == 'license' then return GetPlayerIdentifierByType(source, 'fivem') end
-    return GetPlayerIdentifierByType(source, idtype or 'license')
+    return GetPlayerIdentifierByType(source, 'fivem')
 end
 
 ---Gets a players server id (source). Returns 0 if no player is found.
