@@ -118,5 +118,6 @@ QBConfig.Server.Permissions = { 'god', 'admin', 'mod' } -- Add as many groups as
 QBConfig.Commands = {}                                  -- Command Configuration
 QBConfig.Commands.OOCColor = { 255, 151, 133 }          -- RGB color code for the OOC command
 
--- Custom log configuration to a discord channel
-QBConfig.WebHooks = ""
+
+QBConfig.WebHooks = "" -- Custom log configuration to a discord channel
+QBConfig.Inventory = "qs-inventory" -- Set to your inventory
