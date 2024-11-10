@@ -27,6 +27,7 @@ client_scripts {
     'client/events.lua',
     'client/menu.lua', -- custom handler
     'client/input.lua', -- custom handler
+    'client/target.lua', -- custom handler
     'client/drawtext.lua',
 }
 
