@@ -42,4 +42,4 @@ server_scripts {
     'server/debug.lua'
 }
 
-dependency { 'ox_lib', 'oxmysql' }
+dependency { 'ox_lib', 'ox_target', 'oxmysql' }
