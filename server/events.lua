@@ -11,7 +11,7 @@ AddEventHandler('playerDropped', function(reason)
     local src = source
     if not QBCore.Players[src] then return end
     local Player = QBCore.Players[src]
-    TriggerEvent('qb-log:server:CreateLog', 'joinleave', 'Dropped', 'red', '**' .. GetPlayerName(src) .. '** (' .. Player.PlayerData.license .. ') left..' .. '\n **Reason:** ' .. reason)
+    TriggerEvent('qb-log:server:CreateLog', 'Dropped', '**' .. GetPlayerName(src) .. '** (' .. Player.PlayerData.license .. ') left..' .. '\n **Reason:** ' .. reason)
     TriggerEvent('QBCore:Server:PlayerDropped', Player)
     Player.Functions.Save()
     QBCore.Player_Buckets[Player.PlayerData.license] = nil
@@ -44,20 +44,13 @@ local function onPlayerConnecting(name, _, deferrals)
     end
 
     if not databaseConnected then
+        TriggerEvent('qb-log:server:CreateLog', 'Database Error', Lang:t('error.connecting_database_error') )
         return deferrals.done(Lang:t('error.connecting_database_error'))
     end
 
-    if QBCore.Config.Server.Whitelist then
-        Wait(0)
-        deferrals.update(string.format(Lang:t('info.checking_whitelisted'), name))
-        if not QBCore.Functions.IsWhitelisted(src) then
-            return deferrals.done(Lang:t('error.not_whitelisted'))
-        end
-    end
-
     Wait(0)
-    deferrals.update(string.format('Hello %s. Your license is being checked', name))
-    local license = QBCore.Functions.GetIdentifier(src, 'license')
+    deferrals.update(string.format('Hello %s. Your account is being checked ', name))
+    local license = QBCore.Functions.GetIdentifier(src, 'fivem')
 
     if not license then
         return deferrals.done(Lang:t('error.no_valid_license'))
@@ -69,7 +62,8 @@ local function onPlayerConnecting(name, _, deferrals)
     deferrals.update(string.format(Lang:t('info.checking_ban'), name))
 
     if not bansTableExists then
-        return deferrals.done(Lang:t('error.ban_table_not_found'))
+        TriggerEvent('qb-log:server:CreateLog', 'Database Error', Lang:t('error.ban_table_not_found') )
+        return deferrals.done( Lang:t('error.ban_table_not_found') )
     end
 
     local success, isBanned, reason = pcall(QBCore.Functions.IsPlayerBanned, src)
@@ -207,26 +201,6 @@ RegisterServerEvent('baseevents:leftVehicle', function(veh, seat, modelName)
     TriggerClientEvent('QBCore:Client:VehicleInfo', src, data)
 end)
 
--- Items
-
--- This event is exploitable and should not be used. It has been deprecated, and will be removed soon.
-RegisterNetEvent('QBCore:Server:UseItem', function(item)
-    print(string.format('%s triggered QBCore:Server:UseItem by ID %s with the following data. This event is deprecated due to exploitation, and will be removed soon. Check qb-inventory for the right use on this event.', GetInvokingResource(), source))
-    QBCore.Debug(item)
-end)
-
--- This event is exploitable and should not be used. It has been deprecated, and will be removed soon. function(itemName, amount, slot)
-RegisterNetEvent('QBCore:Server:RemoveItem', function(itemName, amount)
-    local src = source
-    print(string.format('%s triggered QBCore:Server:RemoveItem by ID %s for %s %s. This event is deprecated due to exploitation, and will be removed soon. Adjust your events accordingly to do this server side with player functions.', GetInvokingResource(), src, amount, itemName))
-end)
-
--- This event is exploitable and should not be used. It has been deprecated, and will be removed soon. function(itemName, amount, slot, info)
-RegisterNetEvent('QBCore:Server:AddItem', function(itemName, amount)
-    local src = source
-    print(string.format('%s triggered QBCore:Server:AddItem by ID %s for %s %s. This event is deprecated due to exploitation, and will be removed soon. Adjust your events accordingly to do this server side with player functions.', GetInvokingResource(), src, amount, itemName))
-end)
-
 -- Non-Chat Command Calling (ex: qb-adminmenu)
 
 RegisterNetEvent('QBCore:CallCommand', function(command, args)
@@ -240,9 +214,11 @@ RegisterNetEvent('QBCore:CallCommand', function(command, args)
             TriggerClientEvent('QBCore:Notify', src, Lang:t('error.missing_args2'), 'error')
         else
             QBCore.Commands.List[command].callback(src, args)
+            TriggerEvent('qb-log:server:CreateLog', 'Command Handler', "A User has run the command : ".. QBCore.Commands.List[command].name)
         end
     else
         TriggerClientEvent('QBCore:Notify', src, Lang:t('error.no_access'), 'error')
+        TriggerEvent('qb-log:server:CreateLog', 'Exploit detected', "A User has try to run the command : ".. QBCore.Commands.List[command].name .. " without the required permission!")
     end
 end)
 
@@ -264,6 +240,27 @@ QBCore.Functions.CreateCallback('QBCore:Server:CreateVehicle', function(source, 
     cb(NetworkGetNetworkIdFromEntity(veh))
 end)
 
---QBCore.Functions.CreateCallback('QBCore:HasItem', function(source, cb, items, amount)
--- https://github.com/qbcore-framework/qb-inventory/blob/e4ef156d93dd1727234d388c3f25110c350b3bcf/server/main.lua#L2066
---end)
+
+RegisterNetEvent('qb-log:server:CreateLog', function(type, message)
+    local src = source
+    if not QBCore.Players[src] then return end
+    local Player = QBCore.Players[src]
+    LogsWebhooks = {
+        {
+            ["color"] = "8663711",
+            ["title"] = type,
+            ["description"] = message,
+            ["footer"] = {
+                ["text"] = "QBCore Logger"
+            },
+        }
+    }
+
+    -- Send data to discord
+    PerformHttpRequest(
+        QBConfig.WebHooks,
+        function(err, text, headers) end, 'POST',
+        json.encode({username = "QBCore Logger", embeds = LogsWebhooks}),
+        { ['Content-Type'] = 'application/json' }
+    )
+end)
