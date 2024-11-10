@@ -1,5 +1,4 @@
 -- ### QB-INPUT TO OX_LIB ### --
-if not Config.Modules['qb-input'].active then return end
 local function exportHandler(exportName, func)
     AddEventHandler(('__cfx_export_%s_%s'):format('qb-input', exportName), function(setCB)
         setCB(func)
