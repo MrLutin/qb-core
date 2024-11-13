@@ -146,9 +146,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
 
     applyDefaults(PlayerData, QBCore.Config.Player.PlayerDefaults)
 
-    if GetResourceState(QBConfig.Inventory) ~= 'missing' then
-        PlayerData.items = exports[QBConfig.Inventory]:LoadInventory(PlayerData.source, PlayerData.citizenid)
-    end
+    PlayerData.items = GetResourceState(QBConfig.Inventory) ~= 'missing' and exports[QBConfig.Inventory]:LoadInventory(PlayerData.source, PlayerData.citizenid) or {}
 
     return QBCore.Player.CreatePlayer(PlayerData, Offline)
 end

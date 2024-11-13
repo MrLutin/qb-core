@@ -1,9 +1,10 @@
 fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
-author 'Kakarot'
-description 'Core resource for the framework, contains all the core functionality and features'
+author 'Kakarot, MrLutin'
+description 'Custom version of QB-Core framework, contains all the core functionality and features'
 version '1.2.6'
+repository 'https://github.com/MrLutin/qb-core'
 
 shared_scripts {
     'config.lua',
