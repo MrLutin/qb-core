@@ -43,5 +43,4 @@ server_scripts {
 }
 
 dependency { 'progressbar', 'ox_lib', 'ox_target', 'oxmysql' }
-
-provide {'qb-menu', 'qb-input', 'qb-target'}
+provide { 'qb-menu', 'qb-input', 'qb-target' }

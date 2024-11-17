@@ -28,4 +28,15 @@ QBShared.Jobs = {
 			['4'] = { name = 'Chief', isboss = true, payment = 150 },
 		},
 	},
+	taxi = {
+		label = 'Taxi',
+		type = 'taxi',
+		defaultDuty = true,
+		offDutyPay = false,
+		grades = {
+			['0'] = { name = 'Recrue', payment = 50 },
+			['1'] = { name = 'Senior', payment = 75 },
+			['2'] = { name = 'Chef', isboss = true, payment = 100 },
+		},
+	},
 }

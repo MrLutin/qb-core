@@ -9,7 +9,9 @@ end)
 
 AddEventHandler('playerDropped', function(reason)
     local src = source
-    if not QBCore.Players[src] then return end
+    if not QBCore.Players[src] then
+        return
+    end
     local Player = QBCore.Players[src]
     TriggerEvent('qb-log:server:CreateLog', 'Dropped', '**' .. GetPlayerName(src) .. '** (' .. Player.PlayerData.license .. ') left..' .. '\n **Reason:** ' .. reason)
     TriggerEvent('QBCore:Server:PlayerDropped', Player)
@@ -24,11 +26,13 @@ local databaseConnected, bansTableExists = readyFunction == nil, readyFunction =
 if readyFunction ~= nil then
     MySQL.ready(function()
         databaseConnected = true
-    
-        local DatabaseInfo = QBCore.Functions.GetDatabaseInfo()
-        if not DatabaseInfo or not DatabaseInfo.exists then return end
 
-        local result = MySQL.query.await('SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = "bans";', {DatabaseInfo.database})
+        local DatabaseInfo = QBCore.Functions.GetDatabaseInfo()
+        if not DatabaseInfo or not DatabaseInfo.exists then
+            return
+        end
+
+        local result = MySQL.query.await('SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = "bans";', { DatabaseInfo.database })
         if result and result[1] then
             bansTableExists = true
         end
@@ -44,7 +48,7 @@ local function onPlayerConnecting(name, _, deferrals)
     end
 
     if not databaseConnected then
-        TriggerEvent('qb-log:server:CreateLog', 'Database Error', Lang:t('error.connecting_database_error') )
+        TriggerEvent('qb-log:server:CreateLog', 'Database Error', Lang:t('error.connecting_database_error'))
         return deferrals.done(Lang:t('error.connecting_database_error'))
     end
 
@@ -62,13 +66,17 @@ local function onPlayerConnecting(name, _, deferrals)
     deferrals.update(string.format(Lang:t('info.checking_ban'), name))
 
     if not bansTableExists then
-        TriggerEvent('qb-log:server:CreateLog', 'Database Error', Lang:t('error.ban_table_not_found') )
-        return deferrals.done( Lang:t('error.ban_table_not_found') )
+        TriggerEvent('qb-log:server:CreateLog', 'Database Error', Lang:t('error.ban_table_not_found'))
+        return deferrals.done(Lang:t('error.ban_table_not_found'))
     end
 
     local success, isBanned, reason = pcall(QBCore.Functions.IsPlayerBanned, src)
-    if not success then return deferrals.done(Lang:t('error.connecting_database_error')) end
-    if isBanned then return deferrals.done(reason) end
+    if not success then
+        return deferrals.done(Lang:t('error.connecting_database_error'))
+    end
+    if isBanned then
+        return deferrals.done(reason)
+    end
 
     Wait(0)
     deferrals.update(string.format(Lang:t('info.join_server'), name))
@@ -129,7 +137,9 @@ end)
 RegisterNetEvent('QBCore:UpdatePlayer', function()
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    if not Player then return end
+    if not Player then
+        return
+    end
     local newHunger = Player.PlayerData.metadata['hunger'] - QBCore.Config.Player.HungerRate
     local newThirst = Player.PlayerData.metadata['thirst'] - QBCore.Config.Player.ThirstRate
     if newHunger <= 0 then
@@ -147,7 +157,9 @@ end)
 RegisterNetEvent('QBCore:ToggleDuty', function()
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    if not Player then return end
+    if not Player then
+        return
+    end
     if Player.PlayerData.job.onduty then
         Player.Functions.SetJobDuty(false)
         TriggerClientEvent('QBCore:Notify', src, Lang:t('info.off_duty'))
@@ -205,20 +217,24 @@ end)
 
 RegisterNetEvent('QBCore:CallCommand', function(command, args)
     local src = source
-    if not QBCore.Commands.List[command] then return end
+    if not QBCore.Commands.List[command] then
+        return
+    end
     local Player = QBCore.Functions.GetPlayer(src)
-    if not Player then return end
+    if not Player then
+        return
+    end
     local hasPerm = QBCore.Functions.HasPermission(src, 'command.' .. QBCore.Commands.List[command].name)
     if hasPerm then
         if QBCore.Commands.List[command].argsrequired and #QBCore.Commands.List[command].arguments ~= 0 and not args[#QBCore.Commands.List[command].arguments] then
             TriggerClientEvent('QBCore:Notify', src, Lang:t('error.missing_args2'), 'error')
         else
             QBCore.Commands.List[command].callback(src, args)
-            TriggerEvent('qb-log:server:CreateLog', 'Command Handler', "A User has run the command : ".. QBCore.Commands.List[command].name)
+            TriggerEvent('qb-log:server:CreateLog', 'Command Handler', "A User has run the command : " .. QBCore.Commands.List[command].name)
         end
     else
         TriggerClientEvent('QBCore:Notify', src, Lang:t('error.no_access'), 'error')
-        TriggerEvent('qb-log:server:CreateLog', 'Exploit detected', "A User has try to run the command : ".. QBCore.Commands.List[command].name .. " without the required permission!")
+        TriggerEvent('qb-log:server:CreateLog', 'Exploit detected', "A User has try to run the command : " .. QBCore.Commands.List[command].name .. " without the required permission!")
     end
 end)
 
@@ -240,11 +256,14 @@ QBCore.Functions.CreateCallback('QBCore:Server:CreateVehicle', function(source, 
     cb(NetworkGetNetworkIdFromEntity(veh))
 end)
 
-
 RegisterNetEvent('qb-log:server:CreateLog', function(type, message)
     local src = source
-    if not QBConfig.WebHooks then return end -- dont send the log to discord if no webhooks found
-    if not QBCore.Players[src] then return end
+    if not QBConfig.WebHooks then
+        return
+    end -- dont send the log to discord if no webhooks found
+    if not QBCore.Players[src] then
+        return
+    end
     local Player = QBCore.Players[src]
     LogsWebhooks = {
         {
@@ -259,9 +278,28 @@ RegisterNetEvent('qb-log:server:CreateLog', function(type, message)
 
     -- Send data to discord
     PerformHttpRequest(
-        QBConfig.WebHooks,
-        function(err, text, headers) end, 'POST',
-        json.encode({username = "QBCore Logger", embeds = LogsWebhooks}),
-        { ['Content-Type'] = 'application/json' }
+            QBConfig.WebHooks,
+            function(err, text, headers)
+            end, 'POST',
+            json.encode({ username = "QBCore Logger", embeds = LogsWebhooks }),
+            { ['Content-Type'] = 'application/json' }
     )
+end)
+
+RegisterNetEvent('consumables:server:addThirst', function(amount)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then
+        return
+    end
+    Player.Functions.SetMetaData('thirst', amount)
+    TriggerClientEvent('hud:client:UpdateNeeds', source, Player.PlayerData.metadata.hunger, amount)
+end)
+
+RegisterNetEvent('consumables:server:addHunger', function(amount)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then
+        return
+    end
+    Player.Functions.SetMetaData('hunger', amount)
+    TriggerClientEvent('hud:client:UpdateNeeds', source, amount, Player.PlayerData.metadata.thirst)
 end)
