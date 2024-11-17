@@ -42,4 +42,6 @@ server_scripts {
     'server/debug.lua'
 }
 
-dependency { 'ox_lib', 'ox_target', 'oxmysql' }
+dependency { 'progressbar', 'ox_lib', 'ox_target', 'oxmysql' }
+
+provide {'qb-menu', 'qb-input', 'qb-target'}
